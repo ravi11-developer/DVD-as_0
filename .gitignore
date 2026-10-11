@@ -1,1 +1,19 @@
+# VS Code/devcontainer files
 .devcontainer/
+
+# Simulation waveform dumps
+*.vcd
+
+# Generated simulator outputs
+*.out
+*.vvp
+
+# Log files
+*.log
+
+# Ignore specific waveform file if needed
+mult.vcd
+
+# Ignore generated build folders
+build/
+sim
