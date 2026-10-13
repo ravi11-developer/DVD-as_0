@@ -17,3 +17,6 @@ mult.vcd
 # Ignore generated build folders
 build/
 sim
+gls
+synth/mult_array_netlist.v
+synth/mult_array_stat.rpt
