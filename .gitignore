@@ -21,3 +21,5 @@ gls
 synth/mult_array_netlist.v
 synth/mult_array_stat.rpt
 sta/mult_array_timing.rpt
+.dide/
+pnr/runs/
