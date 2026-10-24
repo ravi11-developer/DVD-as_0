@@ -117,7 +117,7 @@ The design implements a 4-bit unsigned array multiplier generating an 8-bit prod
 \begin{figure}[H]
     \centering
     \includeimage{block_diagram.png}{4-bit Multiplier Structural Block Diagram}
-    \caption{4-bit Array Multiplier Structural Architecture (16 AND Gates, 12 Full Adders, Input/Output Registers)}
+    \caption{4-bit Array Multiplier Structural Architecture}
     \label{fig:block_diagram}
 \end{figure}
 
@@ -127,21 +127,21 @@ Functional verification was carried out exhaustively using Icarus Verilog by cyc
 \begin{figure}[H]
     \centering
     \includeimage{partA_2.png}{Part A Simulation PASS Summary}
-    \caption{Functional RTL Verification Summary (PASS on 256 vectors)}
+    \caption{ RTL Verification Summary (PASS on 256 vectors)}
     \label{fig:pass_result}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includeimage{waveform.png}{Simulation Waveform with 2-Cycle Latency}
-    \caption{Simulation Waveform showing Clock, Active-Low Reset, Inputs $a$, $b$, and Output Product $p$ with 2-Cycle Latency Marked}
+    \caption{Simulation Waveform }
     \label{fig:waveform}
 \end{figure}
 
 \section{Part B — Logic Synthesis with Yosys}
 
 \subsection{Synthesis Results}
-Logic synthesis was carried out using Yosys targeting the SkyWater 130~nm High-Density standard cell library (\texttt{sky130\_fd\_sc\_hd}). The design hierarchy was flattened and technology mapped using ABC and DFF library mapping. The area and cell count statistics extracted from \texttt{synth/mult\_array\_stat.rpt} are presented in Table~\ref{tab:partb_results}.
+Logic synthesis was carried out using Yosys targeting the SkyWater 130~nm High-Density standard cell library (\texttt{sky130\_fd\_sc\_hd}). The area and cell count statistics  are presented in Table~\ref{tab:partb_results}.
 
 \begin{table}[H]
 \centering
@@ -156,12 +156,12 @@ Flip-flop area (\% of total) & 50.96\% \\ \hline
 The 3 most-used cell types and counts & \begin{tabular}[c]{@{}l@{}}1. \texttt{sky130\_fd\_sc\_hd\_\_dfrtp\_1}: 16\\ 2. \texttt{sky130\_fd\_sc\_hd\_\_nand2\_1}: 8\\ 3. \texttt{sky130\_fd\_sc\_hd\_\_and2\_0}: 6 / \texttt{xnor2\_1}: 6\end{tabular} \\ \hline
 Netlist simulation result & PASS: 256 vectors checked, 0 errors \\ \hline
 \end{tabular}
-\caption{Part B Logic Synthesis Results Summary (\texttt{mult\_array\_stat.rpt})}
+\caption{ Logic Synthesis Results Summary}
 \label{tab:partb_results}
 \end{table}
 
 \subsection{Gate-Level Netlist Simulation}
-The synthesized gate-level Verilog netlist (\texttt{synth/mult\_array\_netlist.v}) was simulated against the functional testbench using the SKY130 standard cell primitives to ensure equivalence with RTL.
+
 
 \begin{figure}[H]
     \centering
@@ -173,7 +173,7 @@ The synthesized gate-level Verilog netlist (\texttt{synth/mult\_array\_netlist.v
 \section{Part C — Static Timing Analysis with OpenSTA}
 
 \subsection{Timing Analysis Results}
-Static timing analysis was conducted with OpenSTA using the typical process corner library (\texttt{sky130\_fd\_sc\_hd\_\_tt\_025C\_1v80.lib}) under an initial clock constraint of $T = 10.0$~ns with input/output delays set to $1.0$~ns. From the timing report (\texttt{sta/mult\_array\_timing.rpt}), the worst negative slack is $+7.027$~ns, giving a minimum achievable clock period of $T_{min} = 2.973$~ns ($\approx 2.97$~ns) and a maximum frequency of $F_{max} = 336.70$~MHz.
+Static timing analysis was conducted with OpenSTA  under an initial clock constraint of $T = 10.0$~ns . , the worst negative slack is $+7.027$~ns, giving a minimum achievable clock period of $T_{min} = 2.973$~ns ($\approx 2.97$~ns) and a maximum frequency of $F_{max} = 336.70$~MHz.
 
 \begin{table}[H]
 \centering
@@ -190,7 +190,7 @@ Number of cells on the critical path & 8 combinational gates (10 cells total) \\
 Latency (ns) $= 2 \times T_{min}$ & $5.94$ \\ \hline
 Throughput (million results/sec) & $336.70$ \\ \hline
 \end{tabular}
-\caption{Part C Static Timing Analysis Table}
+\caption{ Static Timing Analysis }
 \label{tab:partc_results}
 \end{table}
 
@@ -227,37 +227,70 @@ Total data arrival time through the path is $2.842$~ns. The 8 combinational cell
 \section{Part D — Physical Design: RTL to GDSII}
 
 \subsection{Implementation and Flow Results}
-Physical design was completed using LibreLane on the SKY130 technology targeting a fixed die size of $150\,\mu\text{m} \times 150\,\mu\text{m}$ (\texttt{FP\_SIZING: absolute}). The automated flow executed floorplanning, power grid distribution (PDN), placement, clock tree synthesis (CTS), detailed routing, parasitic RC extraction, and signoff checks (DRC, LVS, STA). 
+Physical design was completed using LibreLane targeting the SkyWater 130~nm standard cell library (\texttt{sky130\_fd\_sc\_hd}) with a fixed die area of $150\,\mu\text{m} \times 150\,\mu\text{m}$ (\texttt{FP\_SIZING: absolute}, die area: $22,500.00\,\mu\text{m}^2$). The automated physical design flow executed floorplanning, power distribution network (PDN) generation, placement, clock tree synthesis (CTS), detailed routing, parasitic RC extraction, and multi-corner signoff timing, DRC, and LVS checks.
 
-The metrics extracted from \texttt{pnr/runs/RUN\_2026-10-15\_20-59-19/final/metrics.json} are summarized in Table~\ref{tab:partd_results}.
+To establish the minimum operational clock period, an iterative clock sweep was conducted in accordance with the assignment guidelines. Starting from the theoretical pre-route estimate \[
+\boldsymbol{1.2 \times T_{\min} = 1.2 \times 2.973\,\text{ns} = 3.5676\,\text{ns}}
+\]
+ (rounded up to $4.00$~ns), the clock period was stepped in $0.5$~ns increments until all DRC and LVS checks passed with non-negative setup slack ($\text{slack} \ge 0$). Timing closure at the signoff slow corner (\texttt{max\_ss\_100C\_1v60}) was achieved at $\text{CLOCK\_PERIOD} = 6.00$~ns.
+
+
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|}
+\small
+\begin{tabular}{|l|p{5.2cm}|p{5.2cm}|}
 \hline
-\textbf{Metric} & \textbf{Value} \\ \hline
-CLOCK\_PERIOD used (ns) & 10.0 \\ \hline
-Number of runs needed & 1 \\ \hline
-Core area ($\mu\text{m}^2$) & 17,759.50 (Die area: 22,500.00 $\mu\text{m}^2$) \\ \hline
-Cells after synthesis (from Part B) & 68 \\ \hline
-Cells after place and route & 1,892 (335 standard cells + 1,557 fill cells) \\ \hline
-Kinds of cells added & \begin{tabular}[c]{@{}l@{}}Fill cells (1,557), Tap cells (245), \\ Timing buffers (19), Clock buffers (3), Inverters (4)\end{tabular} \\ \hline
-Wirelength ($\mu\text{m}$) & 2,395 \\ \hline
-Setup slack (ns) & +2.894 (\texttt{max\_ss} worst corner) / +6.475 (\texttt{nom\_tt}) \\ \hline
-Post-route $F_{max}$ (MHz) & 140.73 (worst corner signoff) / 283.69 (\texttt{tt} corner) \\ \hline
-$F_{max}$ from Part C (MHz) & 336.70 \\ \hline
-DRC errors & 0 \\ \hline
-LVS errors & 0 \\ \hline
+\textbf{Metric} & \textbf{Passing Signoff Run} (\texttt{16-25-06}) & \textbf{Baseline Run} (\texttt{20-59-19}) \\ \hline
+CLOCK\_PERIOD used (ns) & 6.00 & 10.00 \\ \hline
+Number of runs needed & 4 iterations to closure (9 runs total) & 1 (initial baseline run) \\ \hline
+Core area ($\mu\text{m}^2$) & 17,759.50 (Die area: 22,500.00 $\mu\text{m}^2$) & 17,759.50 (Die area: 22,500.00 $\mu\text{m}^2$) \\ \hline
+Cells after synthesis (from Part B) & 68 (16 sequential + 52 combinational) & 68 (16 sequential + 52 combinational) \\ \hline
+Cells after place and route & 1,891 (339 standard + 1,552 fill) & 1,892 (335 standard + 1,557 fill) \\ \hline
+Kinds of cells added & Fill/decap (1,552), Tap (245), Timing buffers (23), Clock buffers (3), Inverters (4) & Fill/decap (1,557), Tap (245), Timing buffers (19), Clock buffers (3), Inverters (4) \\ \hline
+Wirelength ($\mu\text{m}$) & 2,407 & 2,395 \\ \hline
+Setup slack (ns) & +0.046 (\texttt{max\_ss}) / +2.916 (\texttt{nom\_tt}) & +2.894 (\texttt{max\_ss}) / +6.475 (\texttt{nom\_tt}) \\ \hline
+Post-route $F_{max}$ (MHz) & 167.94 (\texttt{max\_ss}) / 324.23 (\texttt{nom\_tt}) & 140.73 (\texttt{max\_ss}) / 283.69 (\texttt{nom\_tt}) \\ \hline
+$F_{max}$ from Part C (MHz) & 336.70 & 336.70 \\ \hline
+DRC errors & 0 (Magic: 0, KLayout: 0, Route: 0) & 0 (Magic: 0, KLayout: 0, Route: 0) \\ \hline
+LVS errors & 0 (Netgen unmatched nets/pins: 0) & 0 (Netgen unmatched nets/pins: 0) \\ \hline
 \end{tabular}
 \caption{Part D Physical Design Results Summary (\texttt{metrics.json})}
 \label{tab:partd_results}
 \end{table}
 
-The post-route maximum frequency was computed according to the formula:
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\hline
+ \textbf{Clock (ns)} & \textbf{Std / Fill / Total} & \textbf{Timing Buf} & \textbf{Wire ($\mu\text{m}$)} & \textbf{Slack \texttt{max\_ss} (ns)} & \textbf{Slack \texttt{nom\_tt} (ns)} & \textbf{Signoff Status} \\ \hline
+\texttt 10.00 & 335 / 1557 / 1892 & 19 & 2,395 & +2.894 & +6.475 & \textbf{MET} (Baseline) \\ \hline
+\texttt 3.50 & 348 / 1547 / 1895 & 32 & 2,440 & -2.188 & +0.511 & \textbf{VIOLATED} \\ \hline
+\texttt 4.00 & 348 / 1547 / 1895 & 32 & 2,440 & -1.688 & +1.011 & \textbf{VIOLATED} \\ \hline
+\texttt 4.00 & 348 / 1547 / 1895 & 32 & 2,440 & -1.688 & +1.011 & \textbf{VIOLATED} (Rep. 1) \\ \hline
+\texttt 4.00 & 348 / 1547 / 1895 & 32 & 2,440 & -1.688 & +1.011 & \textbf{VIOLATED} (Rep. 2) \\ \hline
+\texttt  4.50 & 348 / 1547 / 1895 & 32 & 2,440 & -1.188 & +1.511 & \textbf{VIOLATED} \\ \hline
+\texttt  5.00 & 348 / 1547 / 1895 & 32 & 2,440 & -0.688 & +2.011 & \textbf{VIOLATED} \\ \hline
+\texttt  6.00 & 339 / 1552 / 1891 & 23 & 2,407 & +0.046 & +2.916 & \textbf{MET} (Optimal) \\ \hline
+\texttt  5.50 & 348 / 1547 / 1895 & 32 & 2,440 & -0.188 & +2.511 & \textbf{VIOLATED} \\ \hline
+\end{tabular}%
+}
+\caption{Comprehensive Comparison of All 9 LibreLane Physical Design Runs}
+\label{tab:clock_sweep}
+\end{table}
+
+The post-route maximum frequency for the passing signoff implementation is computed from the critical-path arrival delay according to:
 \begin{equation}
-F_{max,\text{post-route}} = \frac{1000}{\text{CLOCK\_PERIOD} - \text{setup slack}} = \frac{1000}{10.0 - 2.894} = 140.73\text{ MHz}
+F_{max,\text{post-route}} = \frac{1000}{\text{CLOCK\_PERIOD} - \text{setup slack}} = \frac{1000}{6.00 - 0.0456} = 167.94\text{ MHz}
+\label{eq:fmax_postroute}
 \end{equation}
-Under typical corner conditions (\texttt{nom\_tt\_025C\_1v80}), the setup slack is $+6.475$~ns, corresponding to an effective frequency of $283.69$~MHz.
+Under typical nominal conditions (\texttt{nom\_tt\_025C\_1v80}), the setup slack is $+2.9158$~ns, corresponding to an effective frequency of:
+\begin{equation}
+F_{max,\text{nominal}} = \frac{1000}{6.00 - 2.9158} = 324.23\text{ MHz}
+\end{equation}
+For the initial baseline run at $T = 10.00$~ns (\texttt{RUN\_2026-10-15\_20-59-19}), the setup slack of $+2.894$~ns yields $F_{max} = \frac{1000}{10.0 - 2.894} = 140.73$~MHz at the slow corner and $283.69$~MHz at the typical corner ($+6.475$~ns slack).
 
 \subsection{Layout Visualizations}
 The final layout GDSII was inspected in KLayout to verify standard cell row arrangement, power stripe distribution, pin placement, and metal routing.
@@ -300,19 +333,22 @@ Sequential elements account for $50.96\%$ of the total active cell area ($400.38
 \textbf{Question:} Why is the post-route $F_{max}$ lower than the $F_{max}$ from Part C? Which kinds of cells did the flow add, and why is each kind needed?
 
 \textbf{Answer:} 
-Post-route $F_{max}$ ($140.73$~MHz worst corner, $283.69$~MHz nominal) is lower than Part C pre-route $F_{max}$ ($336.70$~MHz) primarily due to physical interconnect parasitics and multi-corner signoff derating. While Part C assumes idealized zero-wire delays, post-routing includes distributed resistance and capacitance across $2,395\,\mu\text{m}$ of metal wiring, clock tree insertion delay and skew ($+0.265$~ns), and clock jitter/uncertainty ($0.250$~ns) under the worst-case slow-slow PVT corner (\texttt{nom\_ss\_100C\_1v60}). During physical implementation, the tool added four distinct categories of physical cells:
+Post-route $F_{max}$ ($167.94$~MHz worst corner signoff, $324.23$~MHz nominal corner in the passing 6.00~ns run) is lower than the Part C pre-route $F_{max}$ ($336.70$~MHz) primarily due to physical interconnect parasitics and multi-corner signoff derating. While Part C evaluates timing under the ideal typical corner (\texttt{tt\_025C\_1v80}) assuming zero wire delays, post-routing physical design introduces distributed RC delay across $2,407\,\mu\text{m}$ of routed metal wiring, clock tree insertion delay and skew ($+0.277$~ns), and clock jitter uncertainty ($0.250$~ns) evaluated under the worst-case slow-slow PVT corner (\texttt{max\_ss\_100C\_1v60}). At high operating temperature (100$^\circ$C) and reduced core voltage (1.60~V), carrier mobility and transistor drive current are degraded, causing the physical critical path delay to increase from $2.973$~ns (Part C) to $5.954$~ns. At the nominal corner (\texttt{nom\_tt\_025C\_1v80}), post-route $F_{max}$ is $324.23$~MHz, which is within $3.7\%$ of Part C, verifying that the majority of the frequency gap stems from worst-case PVT signoff margins rather than excessive routing delay. In the initial relaxed baseline run ($T = 10.00$~ns), $F_{max}$ was $140.73$~MHz under \texttt{max\_ss} and $283.69$~MHz under \texttt{nom\_tt}.
+
+During physical implementation, LibreLane introduced five categories of physical cells into the design:
 \begin{enumerate}
-    \item \textbf{Tap cells} (245 cells, \texttt{tap\_cell}): Inserted at periodic pitch to tie n-wells to $V_{DD}$ and the substrate to $V_{SS}$, preventing CMOS latch-up.
-    \item \textbf{Fill cells} (1,557 cells, \texttt{fill\_cell}): Inserted to fill vacant core sites, ensuring continuous power rails, well continuity, and metal density rules for chemical-mechanical polishing (CMP).
-    \item \textbf{Timing repair and Clock buffers} (22 cells: 19 \texttt{timing\_repair\_buffer}, 3 \texttt{clock\_buffer}): Clock buffers balance the clock tree network across flip-flops to minimize clock skew; timing buffers drive long nets to fix maximum slew, transition, and setup/hold constraints.
-    \item \textbf{Inverters} (4 cells, \texttt{inverter}): Provide polarity correction and load driving capability.
+    \item \textbf{Tap cells} (245 cells, \texttt{sky130\_fd\_sc\_hd\_\_tapvpwrvgnd\_1}): Inserted at periodic pitch during floorplanning to tie n-wells to $V_{DD}$ and the p-substrate to $V_{SS}$, preventing CMOS latch-up.
+    \item \textbf{Fill and Decoupling Capacitance cells} (1,552 cells in the 6.00~ns run; 1,557 in the 10.00~ns run): Inserted into vacant core sites post-routing. Decoupling capacitors (\texttt{decap\_12}, \texttt{decap\_6}, etc.) suppress power-supply noise and IR drop, while non-functional fill cells (\texttt{fill\_1}, \texttt{fill\_2}) maintain continuous well and power rails and satisfy foundry metal density rules for chemical-mechanical polishing (CMP).
+    \item \textbf{Clock buffers} (3 cells, \texttt{sky130\_fd\_sc\_hd\_\_clkbuf\_16}): Inserted during Clock Tree Synthesis (CTS) to build a low-skew, balanced clock distribution tree across the 16 registers.
+    \item \textbf{Timing repair buffers} (23 cells in the 6.00~ns passing run; 19 in the 10.00~ns run; 32 in the 3.5--5.5~ns runs): Inserted by the OpenROAD resizer to resolve maximum transition, capacitive slew, and timing setup/hold violations. Under tight constraints (3.5--5.5~ns), the tool aggressively inserted 32 buffers in an attempt to close timing.
+    \item \textbf{Inverters} (4 cells): Inserted for polarity correction and load driving capability.
 \end{enumerate}
 
 \subsection{Question 5: DRC and LVS Signoff Verification}
 \textbf{Question:} What does a DRC check verify, and what does an LVS check verify? Why must both pass before a chip can be manufactured?
 
 \textbf{Answer:} 
-Design Rule Checking (DRC) inspects the geometric features of all mask layers against the foundry\x27s manufacturing design rules (such as minimum metal widths, layer-to-layer spacings, enclosure margins, and antenna rules) to guarantee that the layout can be photolithographically manufactured without physical defects like opens or shorts. Layout Versus Schematic (LVS) extracts the electrical circuit (MOSFETs, diodes, capacitors, and their net connectivity) from physical layout polygons and performs a mathematical graph isomorphism comparison against the post-synthesis netlist to verify complete topological and schematic equivalence. Both checks must pass with zero violations because a DRC-clean layout may contain wiring errors that render the circuit non-functional (failing LVS), while an LVS-clean netlist with DRC violations will suffer catastrophic yield failure or physical short circuits during semiconductor fabrication.
+Design Rule Checking (DRC) inspects the geometric features of all mask layers against the foundry's manufacturing design rules (such as minimum metal widths, layer-to-layer spacings, enclosure margins, and antenna rules) to guarantee that the layout can be photolithographically manufactured without physical defects like opens or shorts. Layout Versus Schematic (LVS) extracts the electrical circuit (MOSFETs, diodes, capacitors, and their net connectivity) from physical layout polygons and performs a mathematical graph isomorphism comparison against the post-synthesis netlist to verify complete topological and schematic equivalence. Both checks must pass with zero violations because a DRC-clean layout may contain wiring errors that render the circuit non-functional (failing LVS), while an LVS-clean netlist with DRC violations will suffer catastrophic yield failure or physical short circuits during semiconductor fabrication.
 
 \subsection{Question 6: Multiplier Scalability Analysis ($N = 8$)}
 \textbf{Question:} Using the formulas in Section 2, estimate how the number of full adders and the critical path delay would change if the multiplier were 8 bits wide instead of 4. Show your working.
