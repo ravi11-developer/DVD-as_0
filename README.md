@@ -1,5 +1,56 @@
 LIBGL_ALWAYS_SOFTWARE=1 klayout ./mult_array.gds
 
+# Ye Hum hai
+| Team Member Name | Roll Number |
+| :--- | :--- |
+| Ravi Sahu | 2024102024 |
+| Diddigi Srivatsa | 2025122009 |
+
+
+# Step by Step Cmd
+
+### 1. Part A — RTL Design and Verification
+Compile the structural array multiplier and testbench, run the functional simulation, and inspect the waveform:
+```bash
+iverilog -g2012 -o sim tb/tb_mult.v rtl/full_adder.v rtl/mult_array.v
+
+vvp sim
+
+gtkwave mult.vcd
+```
+
+### 2. Part B — Logic Synthesis with Yosys and Gate-Level Simulation (GLS)
+Synthesize the RTL into the SKY130 standard cell library, generate reports, and verify gate-level simulation:
+```bash
+yosys -c synth/synth.tcl
+
+CELLS=$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/verilog
+iverilog -g2012 -DFUNCTIONAL -DUNIT_DELAY=#1 -o gls \
+  tb/tb_mult.v $CELLS/primitives.v $CELLS/sky130_fd_sc_hd.v synth/mult_array_netlist.v
+
+vvp gls
+```
+
+### 3. Part C — Static Timing Analysis (STA) with OpenSTA
+Run static timing analysis to determine slack, $T_{min}$, critical path, and $F_{max}$:
+```bash
+sta sta/sta.tcl
+```
+
+### 4. Part D — Physical Design: RTL to GDSII with LibreLane
+Run the automated physical design flow (floorplanning, PDN, placement, CTS, routing, RC extraction, DRC/LVS, and timing signoff):
+```bash
+cd pnr
+
+librelane config.json
+
+LIBGL_ALWAYS_SOFTWARE=1 klayout ./mult_array.gds
+
+LIBGL_ALWAYS_SOFTWARE=1 klayout runs/RUN_2026-10-18_16-25-06/final/gds/mult_array.gds
+```
+
+---
+
 # SEC-D (smth need to be done Here)
 Sec -d exec successfully in time period 6 , but got 3.56 from formula 1.2*$t_{min}$
 

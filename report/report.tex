@@ -112,11 +112,37 @@
 
 \subsection{Design Overview}
 The design implements a 4-bit unsigned array multiplier generating an 8-bit product using registered inputs ($a$, $b$) and a registered output ($p$). The datapath is built strictly from an array of 16 AND gates generating partial products and 12 structural instances of a 1-bit full adder arranged across three carry-propagate stages. The registered input and output stages provide a fixed latency of 2 clock cycles and an ideal throughput of one multiplication result per clock cycle.
+\subsection{Hand Worked example}
+\textbf{Bitwise Multiplication of $a = 9$ and $b = 7$}
 
+% \vspace{1em}
+First, convert the numbers to binary: \\
+$a = 9_{10} = 1001_2$ \\
+$b = 7_{10} = 0111_2$ 
+
+\[
+\begin{array}{r@{\qquad}l}
+    1001 \\
+  \times \;\; 0111  \\
+  \hline
+    1001  \\
+   10010  \\
+  100100  \\
+ + 0000000  \\
+  \hline
+  111111 & (\text{Result} = 63_{10})
+\end{array}
+\]
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{annotated-1792866993008.png}
+    \caption{Caption}
+    \label{fig:placeholder}
+\end{figure}
 \subsection{Block Diagram}
 \begin{figure}[H]
     \centering
-    \includeimage{block_diagram.png}{4-bit Multiplier Structural Block Diagram}
+    \includeimage{4x4-array-multiplier.png}{4-bit Multiplier Structural Block Diagram}
     \caption{4-bit Array Multiplier Structural Architecture}
     \label{fig:block_diagram}
 \end{figure}
@@ -124,19 +150,21 @@ The design implements a 4-bit unsigned array multiplier generating an 8-bit prod
 \subsection{Simulation and Verification}
 Functional verification was carried out exhaustively using Icarus Verilog by cycling through all $2^{4} \times 2^{4} = 256$ input combinations ($a \in [0, 15], b \in [0, 15]$) with a self-checking testbench. A 2-cycle latency was accounted for before output sampling.
 
+
 \begin{figure}[H]
     \centering
     \includeimage{partA_2.png}{Part A Simulation PASS Summary}
     \caption{ RTL Verification Summary (PASS on 256 vectors)}
     \label{fig:pass_result}
 \end{figure}
-
-\begin{figure}[H]
+\begin{figure}[h]
     \centering
-    \includeimage{waveform.png}{Simulation Waveform with 2-Cycle Latency}
-    \caption{Simulation Waveform }
-    \label{fig:waveform}
+    \includegraphics[width=0.75\linewidth]{image4.png}
+    \caption{Fail Verification}
+    \label{fig:placeholder}
 \end{figure}
+
+
 
 \section{Part B — Logic Synthesis with Yosys}
 
@@ -148,15 +176,15 @@ Logic synthesis was carried out using Yosys targeting the SkyWater 130~nm High-D
 \begin{tabular}{|l|l|}
 \hline
 \textbf{Metric} & \textbf{Value} \\ \hline
-Total number of cells & 68 \\ \hline
+Total number of cells & 67 \\ \hline
 Number of flip-flops & 16 \\ \hline
-Total cell area ($\mu\text{m}^2$) & 785.754 \\ \hline
+Total cell area ($\mu\text{m}^2$) & 784.502 \\ \hline
 Flip-flop area ($\mu\text{m}^2$) & 400.384 \\ \hline
-Flip-flop area (\% of total) & 50.96\% \\ \hline
-The 3 most-used cell types and counts & \begin{tabular}[c]{@{}l@{}}1. \texttt{sky130\_fd\_sc\_hd\_\_dfrtp\_1}: 16\\ 2. \texttt{sky130\_fd\_sc\_hd\_\_nand2\_1}: 8\\ 3. \texttt{sky130\_fd\_sc\_hd\_\_and2\_0}: 6 / \texttt{xnor2\_1}: 6\end{tabular} \\ \hline
+Flip-flop area (\% of total) & 51.04\% \\ \hline
+The 3 most-used cell types and counts & \begin{tabular}[c]{@{}l@{}}1. \texttt{sky130\_fd\_sc\_hd\_\_dfrtp\_1}: 16\\ 2. \texttt{sky130\_fd\_sc\_hd\_\_nand2\_1}: 9\\ 3. \texttt{sky130\_fd\_sc\_hd\_\_xnor2\_1}: 7\end{tabular} \\ \hline
 Netlist simulation result & PASS: 256 vectors checked, 0 errors \\ \hline
 \end{tabular}
-\caption{ Logic Synthesis Results Summary}
+\caption{Logic Synthesis Results Summary}
 \label{tab:partb_results}
 \end{table}
 
@@ -165,7 +193,7 @@ Netlist simulation result & PASS: 256 vectors checked, 0 errors \\ \hline
 
 \begin{figure}[H]
     \centering
-    \includeimage{netlist_pass.png}{Netlist Simulation PASS Screenshot}
+    \includeimage{image5.png}{Netlist Simulation PASS Screenshot}
     \caption{Gate-Level Netlist Simulation PASS Verification Output}
     \label{fig:netlist_pass}
 \end{figure}
@@ -173,30 +201,30 @@ Netlist simulation result & PASS: 256 vectors checked, 0 errors \\ \hline
 \section{Part C — Static Timing Analysis with OpenSTA}
 
 \subsection{Timing Analysis Results}
-Static timing analysis was conducted with OpenSTA  under an initial clock constraint of $T = 10.0$~ns . , the worst negative slack is $+7.027$~ns, giving a minimum achievable clock period of $T_{min} = 2.973$~ns ($\approx 2.97$~ns) and a maximum frequency of $F_{max} = 336.70$~MHz.
+Static timing analysis was conducted with OpenSTA under an initial clock constraint of $T = 10.0$~ns, yielding a worst slack of $+7.020$~ns, giving a minimum achievable clock period of $T_{min} = 2.98$~ns ($T_{min} = T - \text{slack} = 2.9798$~ns) and a maximum frequency of $F_{max} = 335.57$~MHz.
 
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|l|}
 \hline
 \textbf{Metric} & \textbf{Value} \\ \hline
-Worst slack at $T = 10$ ns (ns) & $+7.03$ \\ \hline
-$T_{min}$ (ns) & $2.97$ \\ \hline
-$F_{max}$ (MHz) & $336.70$ \\ \hline
-Slack at $T = T_{min}$ (ns) & $\approx 0.00$ ($-0.003$) \\ \hline
-Critical path start point & \texttt{\_108\_} \\ \hline
-Critical path end point & \texttt{\_103\_} \\ \hline
+Worst slack at $T = 10$ ns (ns) & $+7.020$ \\ \hline
+$T_{min}$ (ns) & $2.98$ \\ \hline
+$F_{max}$ (MHz) & $335.57$ \\ \hline
+Slack at $T = T_{min}$ (ns) & $+0.0002 \approx 0.00$ \\ \hline
+Critical path start point & \texttt{\_106\_} (\texttt{b\_reg[0]}) \\ \hline
+Critical path end point & \texttt{\_100\_} (\texttt{p[6]}) \\ \hline
 Number of cells on the critical path & 8 combinational gates (10 cells total) \\ \hline
-Latency (ns) $= 2 \times T_{min}$ & $5.94$ \\ \hline
-Throughput (million results/sec) & $336.70$ \\ \hline
+Latency (ns) $= 2 \times T_{min}$ & $5.96$ \\ \hline
+Throughput (million results/sec) & $335.57$ \\ \hline
 \end{tabular}
-\caption{ Static Timing Analysis }
+\caption{Static Timing Analysis Results Summary}
 \label{tab:partc_results}
 \end{table}
 
 \begin{figure}[H]
     \centering
-    \includeimage{Part_C_Worst_Slack.png}{OpenSTA Worst Slack Output at T = 10 ns}
+    \includeimage{image7.png}{OpenSTA Worst Slack Output at T = 10 ns}
     \caption{OpenSTA Worst Slack Output at $T = 10$ ns}
     \label{fig:slack_10}
 \end{figure}
@@ -209,20 +237,20 @@ Throughput (million results/sec) & $336.70$ \\ \hline
 \end{figure}
 
 \subsection{Critical Path Cell Sequence}
-The critical timing path originates at input register \texttt{\_108\_} and terminates at output register \texttt{\_103\_}. It propagates through the following 8 standard combinational logic cells:
+The critical timing path originates at input register \texttt{\_106\_} (\texttt{b\_reg[0]}) and terminates at output register \texttt{\_100\_} (\texttt{p[6]}). It propagates through the following 8 standard combinational logic cells:
 \begin{enumerate}
-    \item \texttt{\_108\_} (\texttt{sky130\_fd\_sc\_hd\_\_dfrtp\_1} - Start Flip-Flop, CLK $\rightarrow$ Q: $0.410$~ns)
-    \item \texttt{\_050\_} (\texttt{sky130\_fd\_sc\_hd\_\_and4\_1}, Delay: $0.223$~ns)
-    \item \texttt{\_061\_} (\texttt{sky130\_fd\_sc\_hd\_\_o21ai\_0}, Delay: $0.195$~ns)
-    \item \texttt{\_062\_} (\texttt{sky130\_fd\_sc\_hd\_\_nand3\_1}, Delay: $0.140$~ns)
-    \item \texttt{\_063\_} (\texttt{sky130\_fd\_sc\_hd\_\_maj3\_1}, Delay: $0.380$~ns)
-    \item \texttt{\_069\_} (\texttt{sky130\_fd\_sc\_hd\_\_xnor3\_1}, Delay: $0.393$~ns)
-    \item \texttt{\_074\_} (\texttt{sky130\_fd\_sc\_hd\_\_maj3\_1}, Delay: $0.369$~ns)
-    \item \texttt{\_086\_} (\texttt{sky130\_fd\_sc\_hd\_\_maj3\_1}, Delay: $0.383$~ns)
-    \item \texttt{\_087\_} (\texttt{sky130\_fd\_sc\_hd\_\_maj3\_1}, Delay: $0.349$~ns)
-    \item \texttt{\_103\_} (\texttt{sky130\_fd\_sc\_hd\_\_dfrtp\_1} - End Flip-Flop, Setup: $-0.131$~ns)
+    \item \texttt{\_106\_} (\texttt{sky130\_fd\_sc\_hd\_\_dfrtp\_1} - Start Flip-Flop, CLK $\rightarrow$ Q: $0.411$~ns)
+    \item \texttt{\_048\_} (\texttt{sky130\_fd\_sc\_hd\_\_and4\_1}, Delay: $0.218$~ns)
+    \item \texttt{\_050\_} (\texttt{sky130\_fd\_sc\_hd\_\_a2111oi\_0}, Delay: $0.428$~ns)
+    \item \texttt{\_051\_} (\texttt{sky130\_fd\_sc\_hd\_\_a21oi\_1}, Delay: $0.094$~ns)
+    \item \texttt{\_053\_} (\texttt{sky130\_fd\_sc\_hd\_\_mux2i\_1}, Delay: $0.218$~ns)
+    \item \texttt{\_069\_} (\texttt{sky130\_fd\_sc\_hd\_\_xnor3\_1}, Delay: $0.374$~ns)
+    \item \texttt{\_074\_} (\texttt{sky130\_fd\_sc\_hd\_\_maj3\_1}, Delay: $0.371$~ns)
+    \item \texttt{\_076\_} (\texttt{sky130\_fd\_sc\_hd\_\_maj3\_1}, Delay: $0.376$~ns)
+    \item \texttt{\_080\_} (\texttt{sky130\_fd\_sc\_hd\_\_xor3\_1}, Delay: $0.355$~ns)
+    \item \texttt{\_100\_} (\texttt{sky130\_fd\_sc\_hd\_\_dfrtp\_1} - End Flip-Flop, Setup: $-0.136$~ns)
 \end{enumerate}
-Total data arrival time through the path is $2.842$~ns. The 8 combinational cells precisely corroborate the theoretical critical path estimate of $2N = 8$ full-adder equivalent stages for an $N = 4$ array multiplier.
+Total data arrival time through the path is $2.844$~ns. Out of the 8 combinational cells, 1 is an AND gate for partial product generation and 7 implement full-adder addition and carry propagation stages (including two \texttt{maj3} carry-generation gates and one \texttt{xor3} sum gate). The 8 combinational cells precisely corroborate the theoretical critical path estimate of $2N = 8$ equivalent full-adder stages for an $N = 4$ array multiplier.
 
 \section{Part D — Physical Design: RTL to GDSII}
 
@@ -241,17 +269,17 @@ To establish the minimum operational clock period, an iterative clock sweep was 
 \small
 \begin{tabular}{|l|p{5.2cm}|p{5.2cm}|}
 \hline
-\textbf{Metric} & \textbf{Passing Signoff Run} (\texttt{16-25-06}) & \textbf{Baseline Run} (\texttt{20-59-19}) \\ \hline
+\textbf{Metric} & (\textbf{Passing Signoff Run} ) & (\textbf{Baseline Run} ) \\ \hline
 CLOCK\_PERIOD used (ns) & 6.00 & 10.00 \\ \hline
 Number of runs needed & 4 iterations to closure (9 runs total) & 1 (initial baseline run) \\ \hline
 Core area ($\mu\text{m}^2$) & 17,759.50 (Die area: 22,500.00 $\mu\text{m}^2$) & 17,759.50 (Die area: 22,500.00 $\mu\text{m}^2$) \\ \hline
-Cells after synthesis (from Part B) & 68 (16 sequential + 52 combinational) & 68 (16 sequential + 52 combinational) \\ \hline
+Cells after synthesis (from Part B) & 67 (16 sequential + 51 combinational) & 67 (16 sequential + 51 combinational) \\ \hline
 Cells after place and route & 1,891 (339 standard + 1,552 fill) & 1,892 (335 standard + 1,557 fill) \\ \hline
 Kinds of cells added & Fill/decap (1,552), Tap (245), Timing buffers (23), Clock buffers (3), Inverters (4) & Fill/decap (1,557), Tap (245), Timing buffers (19), Clock buffers (3), Inverters (4) \\ \hline
 Wirelength ($\mu\text{m}$) & 2,407 & 2,395 \\ \hline
 Setup slack (ns) & +0.046 (\texttt{max\_ss}) / +2.916 (\texttt{nom\_tt}) & +2.894 (\texttt{max\_ss}) / +6.475 (\texttt{nom\_tt}) \\ \hline
 Post-route $F_{max}$ (MHz) & 167.94 (\texttt{max\_ss}) / 324.23 (\texttt{nom\_tt}) & 140.73 (\texttt{max\_ss}) / 283.69 (\texttt{nom\_tt}) \\ \hline
-$F_{max}$ from Part C (MHz) & 336.70 & 336.70 \\ \hline
+$F_{max}$ from Part C (MHz) & 335.57 & 335.57 \\ \hline
 DRC errors & 0 (Magic: 0, KLayout: 0, Route: 0) & 0 (Magic: 0, KLayout: 0, Route: 0) \\ \hline
 LVS errors & 0 (Netgen unmatched nets/pins: 0) & 0 (Netgen unmatched nets/pins: 0) \\ \hline
 \end{tabular}
@@ -290,21 +318,21 @@ Under typical nominal conditions (\texttt{nom\_tt\_025C\_1v80}), the setup slack
 \begin{equation}
 F_{max,\text{nominal}} = \frac{1000}{6.00 - 2.9158} = 324.23\text{ MHz}
 \end{equation}
-For the initial baseline run at $T = 10.00$~ns (\texttt{RUN\_2026-10-15\_20-59-19}), the setup slack of $+2.894$~ns yields $F_{max} = \frac{1000}{10.0 - 2.894} = 140.73$~MHz at the slow corner and $283.69$~MHz at the typical corner ($+6.475$~ns slack).
+For the initial baseline run at $T = 10.00$~ns (\texttt{RUN\_2026, the setup slack of $+2.894$~ns yields $F_{max} = \frac{1000}{10.0 - 2.894} = 140.73$~MHz at the slow corner and $283.69$~MHz at the typical corner ($+6.475$~ns slack).
 
 \subsection{Layout Visualizations}
 The final layout GDSII was inspected in KLayout to verify standard cell row arrangement, power stripe distribution, pin placement, and metal routing.
 
 \begin{figure}[H]
     \centering
-    \includeimage{klayout_whole_die.png}{KLayout Full Die View}
+    \includeimage{image8.png}{KLayout Full Die View}
     \caption{Complete Die Layout in KLayout ($150\,\mu\text{m} \times 150\,\mu\text{m}$)}
     \label{fig:klayout_whole_die}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includeimage{klayout_zoomed.png}{KLayout Zoomed View showing Cell Rows and Routing}
+    \includeimage{image9.png}{KLayout Zoomed View showing Cell Rows and Routing}
     \caption{Zoomed KLayout View showing Standard Cell Rows and Multi-layer Metal Interconnects}
     \label{fig:klayout_zoomed}
 \end{figure}

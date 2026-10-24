@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module mult_array (
     input clk,
     input rst_n,
