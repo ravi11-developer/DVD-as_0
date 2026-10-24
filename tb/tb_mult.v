@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module tb_mult;
     reg clk;
     reg rst_n;
@@ -24,8 +26,13 @@ module tb_mult;
         
         for (i = 0; i < 16; i = i + 1) begin
             for (j = 0; j < 16; j = j + 1) begin
-                a = i; b = j; expected = i * j;
-                @(posedge clk); @(posedge clk); #1; 
+                @(posedge clk);
+                a <= i; 
+                b <= j; 
+                expected = i * j;
+                @(posedge clk); 
+                @(posedge clk); 
+                #1; 
                 if (p !== expected) begin
                     $display("Mismatch: a=%d b=%d expected=%d got=%d", a, b, expected, p);
                     errors = errors + 1;
